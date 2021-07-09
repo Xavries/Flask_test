@@ -1,16 +1,16 @@
 import os
-from flask import Flask, render_template
-from flask_admin import Admin
+from flask import Flask, render_template, redirect, url_for, request
+from flask_admin import Admin, AdminIndexView
 from flask_admin import BaseView, expose
 #from flask_admin.contrib.pymongo import ModelView
-import pymongo
-from pymongo_insert import get_database
+#import pymongo
+#from pymongo_insert import get_database
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin.contrib.sqla import ModelView
 
 from flask_security import Security, login_required, \
-     SQLAlchemySessionUserDatastore
+     SQLAlchemySessionUserDatastore, current_user
 from database import db_session, init_db
 from models import User, Role
 
@@ -36,15 +36,30 @@ db = SQLAlchemy(app)
 # set optional bootswatch theme
 #app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 
-admin = Admin(app, name='microblog', template_mode='bootstrap3')
+class AdminViewMethods:
+    def is_accessible(self):
+        return current_user.has_role('admin')
+    
+    def inaccessible_callback(self, name, **kwardgs):
+        return redirect(url_for('security.login', next=request_url))
+
+class AdminView(AdminViewMethods, ModelView):
+    pass
+
+class AdminVwIndHome(AdminViewMethods, AdminIndexView):
+    pass
+
+admin = Admin(app, 'url to Index', url='/', index_view=AdminVwIndHome(name='Admin Home'), template_mode='bootstrap3')
+
 
 class Items(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(30))
+    name = db.Column(db.String(100))
+    Address = db.Column(db.String(100))
+
 # Add administrative views here
 
 @app.route("/")
-@login_required
 def index():
     return render_template("index.html")
 
@@ -55,6 +70,6 @@ class NotificationsView(BaseView):
         return self.render('admin/notify.html')
 admin.add_view(NotificationsView(name='Notifications', endpoint = 'notify'))
 '''
-admin.add_view(ModelView(Items, db.session))
+admin.add_view(AdminView(Items, db.session))
 
 app.run()
