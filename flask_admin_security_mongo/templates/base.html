@@ -1,0 +1,26 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} Flask_admin</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<nav>
+  <h1>Flask_admin</h1>
+  <ul>
+      <li><a href=".">Index</a>
+      
+      {% if current_user.has_role('admin') %}
+      <li><a href="./admin/">Admin</a>
+      {% endif %}
+      
+      <li><a href="./login">Login</a>
+      <li><a href="./logout">Logout</a>
+  </ul>
+</nav>
+  <h3>Welcome to Flask_admin test app</h3>
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>
