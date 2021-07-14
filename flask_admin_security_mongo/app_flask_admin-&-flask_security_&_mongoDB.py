@@ -33,39 +33,37 @@ db.init_app(app)
 class Role(db.Document, RoleMixin):
     name = db.StringField(max_length=80, unique=True)
     description = db.StringField(max_length=255)
+    def __unicode__(self):
+        return self.name
 
 class User(db.Document, UserMixin):
     email = db.StringField(max_length=255)
     name = db.StringField(max_length=255)
     password = db.StringField(max_length=255)
-    tags = db.ListField(db.ReferenceField('Tag'))
     is_active = db.BooleanField(default=True)
     confirmed_at = db.DateTimeField()
     roles = db.ListField(db.ReferenceField('Role'))
+    def __unicode__(self):
+        return self.name
+
+class Address_coll(db.Document):
+    country = db.StringField()
+    city = db.StringField()
+    street = db.StringField()
+    flat = db.StringField()
+    def __unicode__(self):
+        return ", ".join((self.country, self.city, self.street, self.flat))
+
 
 class Items(db.Document):
     title = db.StringField(max_length=60)
     text = db.StringField()
-    adress = db.StringField(max_length=60)
+    adress = db.ListField(db.ReferenceField(Address_coll))
     pub_date = db.DateTimeField(default=datetime.datetime.now)
     user = db.ReferenceField(User, required=False)
-
     # Required for administrative interface
     def __unicode__(self):
         return self.title
-
-
-class Tag(db.Document):
-    name = db.StringField(max_length=10)
-
-    def __unicode__(self):
-        return self.name
-
-
-class Comment(db.EmbeddedDocument):
-    name = db.StringField(max_length=20, required=True)
-    value = db.StringField(max_length=20)
-    tag = db.ReferenceField(Tag)
 
 
 # Setup Flask-Security
@@ -97,9 +95,6 @@ class UserView(AdminViewMethods, ModelView):
     column_searchable_list = ('name', 'password')
 
     form_ajax_refs = {
-        'tags': {
-            'fields': ('name',)
-        },
         'roles': {
             'fields': ('name',)
         }
@@ -107,7 +102,7 @@ class UserView(AdminViewMethods, ModelView):
 
 
 class ItemsView(AdminViewMethods, ModelView):
-    column_filters = ['adress']
+    #column_filters = ['adress']
 
     form_ajax_refs = {
         'user': {
@@ -126,8 +121,8 @@ if __name__ == '__main__':
     # Add views
     admin.add_view(UserView(User))
     admin.add_view(ItemsView(Items))
-    admin.add_view(AdminView(Tag))
     admin.add_view(AdminView(Role))
+    admin.add_view(AdminView(Address_coll))
     
     # Start app
     app.run(debug=True)
