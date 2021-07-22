@@ -1,0 +1,7 @@
+This flask web app has a lot of trash and far from REST API, but it is working. It will be the base for REST API app.
+Database: SQLite3.
+FEATURES:
+1) Blog. Post creation.
+2) Post like/unlike. Overall amount of likes showed right below th post. Likes aggragated by TODAY are written to database. Why? Don't ask)
+3) Some user activity is tracked: last login time and last request written to database.
+4) JWT authentication. Access token set to cookie. Internal pages are protected by @jwt_required. JWT token is realised as alternative token for flask-login extensions as recommended by flasklogin docs.
