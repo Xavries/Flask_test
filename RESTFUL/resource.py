@@ -1,12 +1,11 @@
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
-from models import post_fields, user_fields, User, Post
-from flask import render_template, make_response#, request, redirect, url_for
+from models import post_fields, user_fields, likes_fields, User, Post
+from flask import render_template, make_response, jsonify#, request, redirect, url_for
 from init_app_db import db
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_current_user, current_user, verify_jwt_in_request
 
-request_parser = reqparse.RequestParser()
 
 ## signup args
 user_signup_args = reqparse.RequestParser()
@@ -27,11 +26,35 @@ user_posts_args.add_argument("title", type=str, help="Title is required", requir
 user_posts_args.add_argument("body", type=str, help="Body")
 ##
 
+## post like args
+like_post_args = reqparse.RequestParser()
+like_post_args.add_argument("post_id", type=int, help="Post id is required", required=True)
+like_post_args.add_argument("like_unlike", type=str, help="Like of unlike is required", required=True)
+##
 
-class User_details(Resource):
+def get_identity_if_logedin():
+    try:
+        verify_jwt_in_request()
+        print(verify_jwt_in_request())
+        return get_jwt_identity()
+    except Exception:
+        pass
+
+
+def write_request_if_logedin():
+    check_user = get_identity_if_logedin()
+    print('check user 1 ---', check_user)
+    if check_user:
+        current_user = User.query.filter_by(id=check_user).first()
+        current_user.last_request_at = datetime.datetime.now()
+        db.session.commit()
+
+class User_activity(Resource):
     @marshal_with(user_fields)
     def get(self):
-        print(User.query.all())
+        
+        write_request_if_logedin()
+        
         users = User.query.all()
         if not users:
             abort(404, message="Can't find users in resource")
@@ -94,6 +117,7 @@ class User_Login(Resource):
         # DELETE later on...
         login_me.token = access_token
         login_me.last_request_at = datetime.datetime.now()
+        login_me.last_login_at = datetime.datetime.now()
         db.session.commit()
         
         # ...and integrate this
@@ -108,32 +132,17 @@ class User_Login(Resource):
         return {'token': access_token}, 200
 
 
-def get_identity_if_logedin():
-    try:
-        verify_jwt_in_request()
-        print(verify_jwt_in_request())
-        return get_jwt_identity()
-    except Exception:
-        pass
-
-
 class Post_get_put(Resource):
     @marshal_with(post_fields)
     def get(self):
         
-        check_user = get_identity_if_logedin()
-        print(check_user)
-        #print(verify_jwt_in_request())
-        ################### method get_identity_if_logedin() doesn't see the user anyway. Rework
-        if check_user:
-            print(get_jwt_identity())
-            get_jwt_identity().last_request_at = datetime.datetime.now()
-            db.session.commit()
+        write_request_if_logedin()
         
         posts = Post.query.all()
         if not posts:
+            print('------------error----------')
             abort(404, message="Can't find posts in resource")
-        print(posts)
+        print('posts:', posts)
         #headers = {'Content-Type': 'text/html'}
         #print(render_template('posts.html', posts=posts))
         #print(make_response(render_template('posts.html', posts=posts), 200, headers))
@@ -142,7 +151,7 @@ class Post_get_put(Resource):
     @jwt_required()
     @marshal_with(post_fields)
     def put(self):
-        ############ somehow it works via terminal, but return [422 UNPROCESSABLE ENTITY]> {'msg': 'Signature verification failed'}
+        ############ somehow it works via terminal, but return [422 UNPROCESSABLE ENTITY]> {'msg': 'Signature verification 0failed'}
         ############ when making request from make_requests.py
         current_user = User.query.filter_by(id=get_jwt_identity()).first()
         args = user_posts_args.parse_args()
@@ -156,31 +165,54 @@ class Post_get_put(Resource):
     
 class Post_like(Resource):
     
+    @marshal_with(likes_fields)
+    def get(self):
+        
+        write_request_if_logedin()
+        
+        posts = Post.query.all()
+        return posts
     
     @marshal_with(post_fields)
     @jwt_required()
     def post(self):
-        args = request_parser.parse_args()
+        args = like_post_args.parse_args()
+        print(args)
         post = Post.query.filter_by(id=args['post_id']).first_or_404()
+        print(post)
         current_user = User.query.filter_by(id=get_jwt_identity()).first()
+        print(current_user)
         
-        if args['like']:
-            #post_like
+        if args['like_unlike']=='like':
             if post.today != str(datetime.date.today()):
                 post.today = str(datetime.date.today())
                 post.likes_today = 0
             post.likes_today +=1
             
+            current_user.like_post(post)
+            current_user.last_request_at = datetime.datetime.now()
+            db.session.commit()
             
-        elif args['unlike']:
+            print('LIKED')
+            
+        elif args['like_unlike']=='unlike':
             post.likes_today -=1
-            #post_unlike
+            
+            current_user.unlike_post(post)
+            current_user.last_request_at = datetime.datetime.now()
+            db.session.commit()
+            
+            print('UNLIKED')
+        
+        else:
+            print('error')
+            abort(404, message="Incorrect argument in request. 'like' or 'unlike' is required")
         
         current_user.last_request_at = datetime.datetime.now()
         db.session.commit()
         
         return {post.title: post.likes_today}
-    
+    '''
     def like_action(post_id, action):
         post = Post.query.filter_by(id=post_id).first_or_404()
         if action == 'like':
@@ -198,4 +230,4 @@ class Post_like(Resource):
             current_user.last_request_at = datetime.datetime.now()
             db.session.commit()
         return redirect(request.referrer)
-
+    '''

@@ -21,6 +21,11 @@ class PostLike(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
+likes_fields = {
+    'title' : fields.String,
+    'likes_today' : fields.Integer,
+}
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     title = db.Column(db.String(200))

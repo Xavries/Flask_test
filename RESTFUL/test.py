@@ -26,18 +26,6 @@ def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
     return User.query.filter_by(id=identity).one_or_none()
 
-'''
-from resource import * #User_details, Post_get_put, User_Login, User_Signup
-
-##
-## setup the Api resource routing down here
-##
-api.add_resource(User_details, '/users')
-api.add_resource(User_Signup, '/signup')
-api.add_resource(User_Login, '/login')
-api.add_resource(Post_get_put, '/posts')
-'''
-
 initialize_routes(api)
 
 if __name__ == '__main__':

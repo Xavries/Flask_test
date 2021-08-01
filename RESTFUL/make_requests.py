@@ -22,10 +22,13 @@ print(response_user_signup_post.json, '\n', response_user_signup_post.text)
 #response_post_get_unauthorized = client.get('/posts')
 #print(response_post_get_unauthorized)
 
-my_headers = {'Content-type': 'application/json', 'Accept': 'text/plain', 'Authorization' : 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYyNzUwNjY3NCwianRpIjoiZmNmNmFjNTAtZGIyOS00MmMxLTkxZmMtMzJjM2JkMTdjY2QyIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEwIiwibmJmIjoxNjI3NTA2Njc0LCJjc3JmIjoiNGNjODlhMzgtYzczYy00MzU2LTg2N2QtNTRhZTAwNTM4ODVjIiwiZXhwIjoxNjI3NTkzMDc0fQ.cRgjKjiY0sYCeST0N3gWSMCMECD3kbqTC0FfvDAiBS4'}
+my_headers = {'Content-type': 'application/json', 'Authorization' : 'Bearer VALID TOKEN!!!!!!!!!'} #,'Accept': 'text/plain'
 #----response_post_get_authorized = client.get('/posts', headers=my_headers)
 #----print(response_post_get_authorized)
 
-##### doesn't work from geany, but works from terminal
-response_post_post_authorized = client.put('/posts', json={'title' : 'request0 test', 'body' : 'req0 test'}, headers={'Authorization' : 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYyNzUwNjk5MSwianRpIjoiNjI2MzkxNGEtMWZhNS00NDViLWIxMjktZDU5OTFkMjU0MjdkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEwIiwibmJmIjoxNjI3NTA2OTkxLCJjc3JmIjoiNDUwNDIwMmEtNzVjYi00ZTY0LWE4NTktYzg5MjQ1MWY3ODU3IiwiZXhwIjoxNjI3NTkzMzkxfQ.m2h1p2iiRrGhOPlAsGE87ODk2hOKMrSL17NVMw4m1dY'})
-print(response_post_post_authorized, response_post_post_authorized.json)
+##### doesn't work from geany - returns [422 UNPROCESSABLE ENTITY]> {'msg': 'Signature verification 0failed'}, but works from terminal
+#response_post_post_authorized = client.put('/posts', json={'title' : 'request0 test', 'body' : 'req0 test'}, headers={'Authorization' : 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYyNzUwNjk5MSwianRpIjoiNjI2MzkxNGEtMWZhNS00NDViLWIxMjktZDU5OTFkMjU0MjdkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEwIiwibmJmIjoxNjI3NTA2OTkxLCJjc3JmIjoiNDUwNDIwMmEtNzVjYi00ZTY0LWE4NTktYzg5MjQ1MWY3ODU3IiwiZXhwIjoxNjI3NTkzMzkxfQ.m2h1p2iiRrGhOPlAsGE87ODk2hOKMrSL17NVMw4m1dY'})
+#print(response_post_post_authorized, response_post_post_authorized.json)
+
+
+resp_like = client.post('/like', json={'post_id':5, 'like_unlike' : 'like'}, headers=my_headers)
