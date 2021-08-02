@@ -1,0 +1,5 @@
+Flask REST API with use of flask-restful and flask-jwt-extended
+
+Database - SQLite
+
+Server runs through test.py
